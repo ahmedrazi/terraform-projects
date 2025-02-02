@@ -1,0 +1,9 @@
+# Create gitignore if needed
+echo "*.tfvars
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log" > .gitignore
+
+# Add your files to git
+git add .
