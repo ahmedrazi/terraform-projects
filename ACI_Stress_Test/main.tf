@@ -33,9 +33,9 @@ variable "apic_url" {
   type        = string
 }
 
-# Create 3 test tenants
+# Create 10 test tenants
 resource "aci_tenant" "tenants" {
-  count = 10   # This will create 3 tenants
+  count = 10   # This will create 10 tenants
   
   name        = "test-tenant-${count.index + 1}"   # Names will be test-tenant-1, test-tenant-2, etc.
   description = "Test tenant ${count.index + 1} created by Terraform"
