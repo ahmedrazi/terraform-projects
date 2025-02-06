@@ -1,4 +1,5 @@
 # variables.tf
+
 # Admin credentials
 variable "admin_username" {
   description = "Admin username"
@@ -8,17 +9,30 @@ variable "admin_username" {
 variable "admin_password" {
   description = "Admin password"
   type        = string
+  sensitive   = true
 }
 
-# Tenant user passwords
+# Tenant credentials
+variable "tenant1_username" {
+  description = "Username for tenant1 admin"
+  type        = string
+}
+
+variable "tenant2_username" {
+  description = "Username for tenant2 admin"
+  type        = string
+}
+
 variable "tenant1_password" {
   description = "Password for tenant1 admin"
   type        = string
+  sensitive   = true
 }
 
 variable "tenant2_password" {
   description = "Password for tenant2 admin"
   type        = string
+  sensitive   = true
 }
 
 # APIC connection

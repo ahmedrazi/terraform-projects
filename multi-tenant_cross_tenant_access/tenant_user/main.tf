@@ -1,4 +1,5 @@
-# main.tf
+# users_tenants.tf
+
 terraform {
   required_providers {
     aci = {
@@ -15,27 +16,9 @@ provider "aci" {
   insecure = true
 }
 
-# Provider for Tenant1
-provider "aci" {
-  alias    = "tenant1"
-  username = "tenant1_admin"
-  password = var.tenant1_password
-  url      = var.apic_url
-  insecure = true
-}
-
-# Provider for Tenant2
-provider "aci" {
-  alias    = "tenant2"
-  username = "tenant2_admin"
-  password = var.tenant2_password
-  url      = var.apic_url
-  insecure = true
-}
-
 # Create User1
 resource "aci_local_user" "tenant1_user" {
-  name              = "tenant1_admin"
+  name              = var.tenant1_username
   description       = "User for tenant1"
   pwd              = var.tenant1_password
   expires          = "no"
@@ -44,7 +27,7 @@ resource "aci_local_user" "tenant1_user" {
 
 # Create User2
 resource "aci_local_user" "tenant2_user" {
-  name              = "tenant2_admin"
+  name              = var.tenant2_username
   description       = "User for tenant2"
   pwd              = var.tenant2_password
   expires          = "no"
@@ -145,51 +128,11 @@ resource "aci_rest_managed" "user2_role" {
   depends_on = [aci_rest_managed.user2_domain_role]
 }
 
-# Cross-Tenant Access Tests
-# Try to create AP in Tenant1 using Tenant1 user (Should Succeed)
-resource "aci_application_profile" "ap_tenant1" {
-  provider    = aci.tenant1
-  tenant_dn   = aci_tenant.tenant1.id
-  name        = "ap1"
-  description = "AP in tenant1"
-  depends_on  = [aci_rest_managed.user1_role, aci_rest_managed.tenant1_security_map]
+# Output the tenant IDs for use in Phase 2
+output "tenant1_id" {
+  value = aci_tenant.tenant1.id
 }
 
-# Try to create AP in Tenant2 using Tenant2 user (Should Succeed)
-resource "aci_application_profile" "ap_tenant2" {
-  provider    = aci.tenant2
-  tenant_dn   = aci_tenant.tenant2.id
-  name        = "ap2"
-  description = "AP in tenant2"
-  depends_on  = [aci_rest_managed.user2_role, aci_rest_managed.tenant2_security_map]
-}
-
-resource "aci_application_profile" "ap_cross_tenant1" {
-  provider    = aci.tenant1
-  tenant_dn   = aci_tenant.tenant2.id
-  name        = "ap1_cross"
-  description = "Cross-tenant attempt from tenant1"
-  depends_on  = [aci_rest_managed.user1_role, aci_rest_managed.tenant2_security_map]
-}
-
-# Try to create AP in Tenant1 using Tenant2 user (Should Fail)
-resource "aci_application_profile" "ap_cross_tenant2" {
-  provider    = aci.tenant2
-  tenant_dn   = aci_tenant.tenant1.id
-  name        = "ap2_cross"
-  description = "Cross-tenant attempt from tenant2"
-  depends_on  = [aci_rest_managed.user2_role, aci_rest_managed.tenant1_security_map]
-}
-
-
-# Update output block to include cross-tenant test results
-output "test_results" {
-  value = {
-    tenant1_created = try(aci_tenant.tenant1.name, "Failed")
-    tenant2_created = try(aci_tenant.tenant2.name, "Failed")
-    tenant1_ap      = try(aci_application_profile.ap_tenant1.name, "Failed")
-    tenant2_ap      = try(aci_application_profile.ap_tenant2.name, "Failed")
-    cross_access_1  = try(aci_application_profile.ap_cross_tenant1.name, "Failed as expected")
-    cross_access_2  = try(aci_application_profile.ap_cross_tenant2.name, "Failed as expected")
-  }
+output "tenant2_id" {
+  value = aci_tenant.tenant2.id
 }
